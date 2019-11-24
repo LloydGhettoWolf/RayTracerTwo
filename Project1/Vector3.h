@@ -183,9 +183,9 @@ Vector3 Vector3::GetNormalized()const
 
 Vector3 RandinUnitSphere()
 {
-	float randX = (float)(rand() % 40) / 40.0f;
-	float randY = (float)(rand() % 40) / 40.0f;
-	float randZ = (float)(rand() % 40) / 40.0f;
+	float randX = RandFloat();
+	float randY = RandFloat();
+	float randZ = RandFloat();
 
 	Vector3 rand(randX, randY, randZ);
 	return rand * 2.0f - Vector3(1.0f, 1.0f, 1.0f);
@@ -241,5 +241,6 @@ float MaxComponent(const Vector3& vec)
 
 float RandFloat()
 {
-	return (float)rand() / (float)RAND_MAX;
+	static float multiplier = 1.0f / (float)RAND_MAX;
+	return (float)rand() * multiplier; ;
 }

@@ -23,8 +23,8 @@
 #include "Camera.h"
 using namespace std;
 
-const int WIDTH  = 1280;
-const int HEIGHT = 1080;
+const int WIDTH  = 640;
+const int HEIGHT = 480;
 const float ASPECT = (float)WIDTH / (float)HEIGHT;
 const int NUM_COLS_PER_PIXEL = 3;
 
@@ -32,7 +32,7 @@ const int SPAN_LENGTH = WIDTH * NUM_COLS_PER_PIXEL;
 
 const int NUM_SAMPLES = 4;
 
-const int NUM_SPHERES = 6;
+const int NUM_SPHERES = 3;
 
 const int NODE_DIMENSION = 16;
 
@@ -52,7 +52,7 @@ void OutputPPM(int width, int height, char* data)
 	header[16] = 24;
 
 	fwrite(header, sizeof(char), 18, out);
-	size_t numBytes = width * height * NUM_COLS_PER_PIXEL;
+	int numBytes = width * height * NUM_COLS_PER_PIXEL;
 	fwrite(data, sizeof(char), numBytes, out);
 	fclose(out);
 }
@@ -231,31 +231,33 @@ int main() {
 	int numPrims;
 	OctreeNode* primList = CreateScene(numPrims);
 	//PrimitiveList *primList  = CreateScene(numPrims);
-
-
 	//TraceRays(0, HEIGHT, 0, WIDTH, horizIncr, vertIncr, camera, samplePositions, primList, sampleMultiplier, dataPtr);
 
-	thread traceThreads[16];
+	int numCores = thread::hardware_concurrency();
 
-	int xIncr = WIDTH / 8;
+	thread *traceThreads = new thread[numCores];
+	int halfcores = numCores / 2;
+
+	int xIncr = WIDTH / halfcores;
 	int dataStride = xIncr * 3;
 
-	for (int i = 0; i < 8; i++)
+	for (int i = 0; i < halfcores; i++)
 	{
-		int xEnd = xIncr * (i + 1);
+		int xStart = xIncr * i;
+		int xEnd = xStart + xIncr;
 		dataPtr = data + i * dataStride;
-		traceThreads[i] = thread(TraceRays, 0, HEIGHT / 2, xIncr * i, xEnd, horizIncr, vertIncr, std::ref(camera), samplePositions, primList, sampleMultiplier, dataPtr);
+		traceThreads[i] = thread(TraceRays, 0, HEIGHT / 2, xStart, xEnd, horizIncr, vertIncr, std::ref(camera), samplePositions, primList, sampleMultiplier, dataPtr);
 	}
 
-	for (int i = 8; i < 16; i++)
+	for (int i = halfcores; i < numCores; i++)
 	{
-		int xStart = xIncr * (i - 8);
-		int xEnd = xIncr * (i - 7);
+		int xStart = xIncr * (i - halfcores);
+		int xEnd = xStart + xIncr;
 		dataPtr = data + i * dataStride;
 		traceThreads[i] = thread(TraceRays, HEIGHT / 2 - 1, HEIGHT, xStart, xEnd, horizIncr, vertIncr, std::ref(camera), samplePositions, primList, sampleMultiplier, dataPtr);
 	}
 
-	for (int i = 0; i < 16; i++)
+	for (int i = 0; i < numCores; i++)
 	{
 		traceThreads[i].join();
 	}
@@ -267,6 +269,8 @@ int main() {
 	delete[] primitives;
 
 	delete[] primList;*/
+
+	delete[] traceThreads;
 
 	return 0;
 }
