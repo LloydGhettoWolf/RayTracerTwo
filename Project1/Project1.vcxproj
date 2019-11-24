@@ -127,11 +127,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Globals.cpp" />
+    <ClCompile Include="Materials.cpp" />
     <ClCompile Include="OctreeNode.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="Sphere.cpp" />
+    <ClCompile Include="Triangle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Globals.h" />
     <ClInclude Include="Materials.h" />
     <ClInclude Include="NodeType.h" />
     <ClInclude Include="OctreeNode.h" />

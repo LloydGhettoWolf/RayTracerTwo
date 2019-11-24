@@ -7,8 +7,8 @@
 class OctreeNode : public NodeType
 {
 public:
-	OctreeNode() {};
-	OctreeNode(const Vector3& min, const Vector3& max, float smallest) : mMin(min), mMax(max), mNumChildren(0), mSmallest(smallest), mChildren(nullptr) {};
+	OctreeNode() { ConstructPoints(); };
+	OctreeNode(const Vector3& min, const Vector3& max, float smallest) : mMin(min), mMax(max), mNumChildren(0), mSmallest(smallest), mChildren(nullptr) { ConstructPoints(); };
 	~OctreeNode();
 
 	void Insert(Primitive *node);
@@ -18,8 +18,13 @@ public:
 
 	const Vector3& GetMin() const { return mMin; }
 	const Vector3& GetMax() const { return mMax; }
+
+	const Vector3* const GetPoints() const { return mPoints; }
 private:
+	void ConstructPoints();
+
 	Vector3 mMin, mMax;
+	Vector3 mPoints[8];
 	int mNumChildren;
 	float mSmallest;
 	OctreeNode *mChildren;

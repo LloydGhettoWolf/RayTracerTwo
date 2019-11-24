@@ -1,4 +1,5 @@
 # include "OctreeNode.h"
+#include "Globals.h"
 
 OctreeNode::~OctreeNode()
 {
@@ -88,6 +89,10 @@ bool OctreeNode::Hit(const Ray& r, float tMin, float tMax, HitRecord& record) co
 	if (mNumChildren == 0 && mPrimitives.size() == 0)
 		return false;
 
+#ifdef GETSTATS
+	IncreaseIntersections();
+#endif
+
 	// do ray - box intersect
 	Vector3 rayOrigin = r.GetOrigin();
 	Vector3 invRayDir = r.GetInv();
@@ -121,4 +126,17 @@ bool OctreeNode::Hit(const Ray& r, float tMin, float tMax, HitRecord& record) co
 	}
 
 	return hits;
+}
+
+void  OctreeNode::ConstructPoints()
+{
+	mPoints[0] = Vector3(mMin);
+	mPoints[1] = Vector3(mMax);
+	mPoints[2] = Vector3(mMin[X], mMin[Y], mMax[Z]);
+	mPoints[3] = Vector3(mMin[X], mMax[Y], mMax[Z]);
+
+	mPoints[4] = Vector3(mMax[X], mMin[Y], mMin[Z]);
+	mPoints[5] = Vector3(mMax[X], mMax[Y], mMin[Z]);
+	mPoints[6] = Vector3(mMax[X], mMin[Y], mMax[Z]);
+	mPoints[7] = Vector3(mMin[X], mMax[Y], mMin[Z]);
 }

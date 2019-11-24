@@ -1,4 +1,4 @@
-//#define SIMD 1;
+
 
 #include <iostream>
 #include <fstream>
@@ -6,13 +6,6 @@
 #include <time.h>
 #include <string>
 #include <thread>
-#include "OctreeNode.h"
-
-#ifdef SIMD
-#else
-#include "Vector3.h"
-#endif
-
 
 #include "Ray.h"
 #include "Primitive.h"
@@ -21,6 +14,8 @@
 #include "Sphere.h"
 #include "Triangle.h"
 #include "Camera.h"
+#include "OctreeNode.h"
+#include "Globals.h"
 using namespace std;
 
 const int WIDTH  = 640;
@@ -179,7 +174,6 @@ void TraceRays(int startY, int finishY, int startX, int finishX, float horizIncr
 			{
 				for (int sample = 0; sample < NUM_SAMPLES; sample++)
 				{
-
 					Ray r = camera.GetRay(u + samplePositions[sample][X], v + samplePositions[sample][Y]);
 					result += BGColor(r, primList, 1);
 				}
@@ -271,6 +265,11 @@ int main() {
 	delete[] primList;*/
 
 	delete[] traceThreads;
+
+#ifdef GETSTATS
+	cout << " num rays created : " << stats.numRaysCreated << endl;
+	cout << " num intersection tests : " << stats.numIntersectionsTests << endl;
+#endif
 
 	return 0;
 }

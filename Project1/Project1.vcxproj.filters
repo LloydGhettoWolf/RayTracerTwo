@@ -3,6 +3,11 @@
   <ItemGroup>
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="OctreeNode.cpp" />
+    <ClCompile Include="Sphere.cpp" />
+    <ClCompile Include="Triangle.cpp" />
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Globals.cpp" />
+    <ClCompile Include="Materials.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vector3.h" />
@@ -16,5 +21,6 @@
     <ClInclude Include="NodeType.h" />
     <ClInclude Include="Vector3Simd.h" />
     <ClInclude Include="Triangle.h" />
+    <ClInclude Include="Globals.h" />
   </ItemGroup>
 </Project>
