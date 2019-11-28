@@ -4,7 +4,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-const double PI = 3.141592;
+const float PI = 3.141592f;
 
 Vector3 RandomInUnitDisc();
 

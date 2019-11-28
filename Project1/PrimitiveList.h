@@ -21,7 +21,6 @@ bool PrimitiveList::Hit(const Ray& r, float tMin, float tMax, HitRecord& record)
 	bool hitAnything = false;
 	float closest = tMax;
 
-
 	for (int i = 0; i < mSize; i++)
 	{
 		if (mList[i]->Hit(r, tMin, closest, tempRec)) {

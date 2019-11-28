@@ -25,13 +25,20 @@ const int NUM_COLS_PER_PIXEL = 3;
 
 const int SPAN_LENGTH = WIDTH * NUM_COLS_PER_PIXEL;
 
-const int NUM_SAMPLES = 4;
+const int NUM_SAMPLES = 32;
+const int DEPTH = 50;
 
-const int NUM_SPHERES = 3;
+const int NUM_SPHERES = 11;
 
 const int NODE_DIMENSION = 16;
 
 const static string fileName = "test.tga";
+
+// will we use accn structure or not?
+//#define ACCN
+
+// will we run on multicore?
+#define MULTICORE
 
 void OutputPPM(int width, int height, char* data)
 {
@@ -52,7 +59,8 @@ void OutputPPM(int width, int height, char* data)
 	fclose(out);
 }
 
-OctreeNode* CreateScene(int &numPrims)
+
+PrimitiveList* CreateScene()
 {
 	int n = 500;
 	Primitive** list = new Primitive* [n + 1];
@@ -65,9 +73,10 @@ OctreeNode* CreateScene(int &numPrims)
 
 	//list[0] = new Triangle( triVerts, new Lambertian(Vector3(0.5f, 0.5f, 0.5f)));
 
-	list[0] = new Sphere(Vector3(0.0f, -1000.0f, 0.0f), 1000.0f, new Lambertian(Vector3(0.5f, 0.5f, 0.5f)));
+	int i = 0;
 
-	int i = 1;
+	list[i++] = new Sphere(Vector3(0.0f, -1000.0f, 0.0f), 1000.0f, new Lambertian(Vector3(0.5f, 0.5f, 0.5f)));
+
 
 	size_t sphereSz = sizeof(Sphere);
 
@@ -83,7 +92,7 @@ OctreeNode* CreateScene(int &numPrims)
 			}
 			else if (chooseMat < 0.95f)
 			{
-				list[i++] = new  Sphere(center, 0.25f, new Metal(Vector3(RandFloat(), RandFloat(), RandFloat()), 0.5f * RandFloat()));
+				list[i++] = new  Sphere(center, 0.25f, new Metal(Vector3(RandFloat(), RandFloat(), RandFloat()), 0.3f * RandFloat()));
 			}
 			else
 			{
@@ -94,23 +103,10 @@ OctreeNode* CreateScene(int &numPrims)
 
 	
 	list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), 1.0f, new Dialectric(1.5f));
+	list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), -0.95f, new Dialectric(1.5f));
+	list[i++] = new Sphere(Vector3(2.0f, 1.0f, 0.0f), 1.0f, new Metal(Vector3(0.7f, 0.6f, 0.5f), 0.0f));
 
-	list[i++] = new Sphere(Vector3(4.0f, 1.0f, 0.0f), 1.0f, new Metal(Vector3(0.7f, 0.6f, 0.5f), 0.0f));
-
-	numPrims = i;
-
-	//// try inserting the lsit of spheres into a quadtree
-
-	OctreeNode* ptr = new OctreeNode(Vector3(-NODE_DIMENSION, 0.0f, -NODE_DIMENSION), Vector3(NODE_DIMENSION, 2.0f, NODE_DIMENSION), 1.0f);
-
-	for (int sphere = 0; sphere < i; sphere++)
-	{
-		ptr->Insert(list[sphere]);
-	}
-
-	return ptr;
-
-	//return new PrimitiveList(list, i);
+	return new PrimitiveList(list, i);
 }
 
 
@@ -127,7 +123,7 @@ Vector3 RandOffset(float xVar, float yVar)
 
 
 
-Vector3 BGColor(const Ray& r, OctreeNode* list, int depth)
+Vector3 BGColor(const Ray& r, PrimitiveList* list, int depth)
 {
 	HitRecord rec;
 
@@ -136,7 +132,7 @@ Vector3 BGColor(const Ray& r, OctreeNode* list, int depth)
 		Ray scattered;
 		Vector3 attenuation;
 
-		if (depth < 10 && rec.matPtr->Scatter(r, rec, attenuation, scattered))
+		if (depth < DEPTH && rec.matPtr->Scatter(r, rec, attenuation, scattered))
 		{
 			return attenuation * BGColor(scattered, list, depth + 1);
 		}
@@ -152,8 +148,8 @@ Vector3 BGColor(const Ray& r, OctreeNode* list, int depth)
 }
 
 
-void TraceRays(int startY, int finishY, int startX, int finishX, float horizIncr, float vertIncr, Camera& camera, Vector3 *samplePositions, OctreeNode* primList, float sampleMultiplier,
-				unsigned char *dataPtr)
+void TraceRays(int startY, int finishY, int startX, int finishX, float horizIncr, float vertIncr, Camera& camera, Vector3* samplePositions, PrimitiveList* primList, float sampleMultiplier,
+	unsigned char* dataPtr)
 {
 
 	for (int i = startY; i < finishY; i++) {
@@ -196,15 +192,14 @@ void TraceRays(int startY, int finishY, int startX, int finishX, float horizIncr
 
 int main() {
 
-
-	srand(time(0));
+	//srand(time(0));
 	size_t dataSz = WIDTH * HEIGHT * NUM_COLS_PER_PIXEL;
 	unsigned char* data = new unsigned char[dataSz];
 	unsigned char* dataPtr = data;
 
 	float x = 0.0f, y = 0.0f;
 
-	float aspect = 1.0 / ASPECT;
+	float aspect = 1.0f / ASPECT;
 	float vertIncr = 1.0f / float(HEIGHT);
 	float horizIncr = 1.0f / float(WIDTH);
 
@@ -216,16 +211,18 @@ int main() {
 
 
 	float R = PI * 0.25f;
-	Vector3 eye(3.0f, 3.0f, 10.0f);
+	Vector3 eye(3.0f, 2.0f, 10.0f);
 	Vector3 focus(0.0f, 0.5f, 0.0f);
 	Vector3 up(0.0f, 1.0f, 0.0f);
 
 	Camera camera(eye, focus, up, 20.0f, ASPECT, 0.1f, 10.0f);
 
-	int numPrims;
-	OctreeNode* primList = CreateScene(numPrims);
-	//PrimitiveList *primList  = CreateScene(numPrims);
-	//TraceRays(0, HEIGHT, 0, WIDTH, horizIncr, vertIncr, camera, samplePositions, primList, sampleMultiplier, dataPtr);
+
+	PrimitiveList *primList  = CreateScene();
+
+#ifndef MULTICORE
+	TraceRays(0, HEIGHT, 0, WIDTH, horizIncr, vertIncr, camera, samplePositions, primList, sampleMultiplier, dataPtr);
+#else
 
 	int numCores = thread::hardware_concurrency();
 
@@ -256,16 +253,17 @@ int main() {
 		traceThreads[i].join();
 	}
 
-	
+	delete[] traceThreads;
+#endif
+
 	OutputPPM(WIDTH, HEIGHT, (char*)data);
 	
-	/*Primitive** primitives = primList->GetList();
+	Primitive** primitives = primList->GetList();
 	delete[] primitives;
 
-	delete[] primList;*/
+	delete[] primList;
 
-	delete[] traceThreads;
-
+	
 #ifdef GETSTATS
 	cout << " num rays created : " << stats.numRaysCreated << endl;
 	cout << " num intersection tests : " << stats.numIntersectionsTests << endl;
