@@ -7,6 +7,8 @@
 #include <string>
 #include <thread>
 #include <chrono>
+#include <queue>
+#include <mutex>
 
 #include "Ray.h"
 #include "Primitive.h"
@@ -17,29 +19,81 @@
 #include "Camera.h"
 #include "OctreeNode.h"
 #include "Globals.h"
+
+struct RayArgs
+{
+	float x;
+	float y;
+	Camera* cam;
+	Vector3* samplePositions;
+	PrimitiveList* primList;
+	float sampleMultiplier;
+	unsigned char* dataPtr;
+};
+
+typedef  void* (*vdFunc)(void*);
+
+struct workItem
+{
+	vdFunc func;
+	RayArgs args;
+};
+
+std::mutex queueMutex;
+std::queue<workItem> workQueue;
+std::condition_variable cond;
+
+bool notFinished = true;
+
 using namespace std;
 
-const int WIDTH  = 640;
-const int HEIGHT = 480;
+const int WIDTH  = 1920;
+const int HEIGHT = 1080;
 const float ASPECT = (float)WIDTH / (float)HEIGHT;
 const int NUM_COLS_PER_PIXEL = 3;
 
 const int SPAN_LENGTH = WIDTH * NUM_COLS_PER_PIXEL;
 
-const int NUM_SAMPLES = 32;
-const int DEPTH = 50;
+const int NUM_SAMPLES = 16;
+const int DEPTH = 25;
 
-const int NUM_SPHERES = 11;
+const int NUM_SPHERES = 8;
 
 const int NODE_DIMENSION = 16;
 
 const static string fileName = "test.tga";
+
 
 // will we use accn structure or not?
 //#define ACCN
 
 // will we run on multicore?
 #define MULTICORE
+
+void WorkerThread()
+{
+	while (true)
+	{
+		std::unique_lock<std::mutex> lk(queueMutex);
+		cond.wait(lk, [] { return !workQueue.empty(); });
+
+		if (notFinished)
+		{
+			if (!workQueue.empty())
+			{
+				workItem item = workQueue.front();
+				workQueue.pop();
+				lk.unlock();
+				item.func((void*)&item.args);
+			}
+		}
+		else
+		{
+			break;
+		}
+
+	}
+}
 
 void OutputPPM(int width, int height, char* data)
 {
@@ -68,14 +122,13 @@ PrimitiveList* CreateScene()
 
 	Vector3 triVerts[3];
 
-	triVerts[0] = Vector3(-1.0f, 0.0f, 0.0f);
-	triVerts[1] = Vector3(1.0f, 0.0f, 0.0f);
-	triVerts[2] = Vector3(0.0f, 1.0f, 0.0f);
-
-	//list[0] = new Triangle( triVerts, new Lambertian(Vector3(0.5f, 0.5f, 0.5f)));
+	triVerts[0] = Vector3(-2.0f, 0.0f, 0.0f);
+	triVerts[1] = Vector3(2.0f, 0.0f, 0.0f);
+	triVerts[2] = Vector3(2.0f, 2.0f, 0.0f);
 
 	int i = 0;
 
+	list[i++] = new Triangle( triVerts, new Metal(Vector3(0.5f, 0.5f, 0.5f), 0.05f));
 	list[i++] = new Sphere(Vector3(0.0f, -1000.0f, 0.0f), 1000.0f, new Lambertian(Vector3(0.5f, 0.5f, 0.5f)));
 
 
@@ -102,10 +155,10 @@ PrimitiveList* CreateScene()
 		}
 	}
 
-	
+	/*
 	list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), 1.0f, new Dialectric(1.5f));
 	list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), -0.95f, new Dialectric(1.5f));
-	list[i++] = new Sphere(Vector3(2.0f, 1.0f, 0.0f), 1.0f, new Metal(Vector3(0.7f, 0.6f, 0.5f), 0.0f));
+	list[i++] = new Sphere(Vector3(2.0f, 1.0f, 0.0f), 1.0f, new Metal(Vector3(0.7f, 0.6f, 0.5f), 0.0f));*/
 
 	return new PrimitiveList(list, i);
 }
@@ -148,48 +201,112 @@ Vector3 BGColor(const Ray& r, PrimitiveList* list, int depth)
 	return (1.0f - t) * Vector3(1.0f) + t * Vector3(0.5f, 0.7f, 1.0f);
 }
 
+#ifdef MULTICORE
+
+void* TraceRay(void* arg)
+{
+	RayArgs* args = (RayArgs*)arg;
+
+	Vector3 result(0.0f);
+
+	for (int sample = 0; sample < NUM_SAMPLES; sample++)
+	{
+		float u = args->x + args->samplePositions[sample][X];
+		float v = args->y + args->samplePositions[sample][Y];
+		Ray r = args->cam->GetRay(u, v);
+		result += BGColor(r, args->primList, 1);
+	}
+
+	result *= args->sampleMultiplier;
+
+	unsigned char vals[3] = { unsigned char(sqrtf(result[Z]) * 255.99f),
+							  unsigned char(sqrtf(result[Y]) * 255.99f),
+							  unsigned char(sqrtf(result[X]) * 255.99f) };
+
+	memcpy((void*)args->dataPtr, (void*)vals, 3);
+
+	return nullptr;
+}
 
 void TraceRays(int startY, int finishY, int startX, int finishX, float horizIncr, float vertIncr, Camera& camera, Vector3* samplePositions, PrimitiveList* primList, float sampleMultiplier,
 	unsigned char* dataPtr)
 {
 
+	unsigned char* dataStart = dataPtr;
+
 	for (int i = startY; i < finishY; i++) {
+
+		
+
+		for (int j = startX; j < finishX; j++)
+		{
+			//Vector3 result;
+			float u = (float)j * horizIncr;
+			float v = (float)i * vertIncr;
+
+			RayArgs args;
+			args.cam = &camera;
+			args.x = u;
+			args.y = v;
+			args.primList = primList;
+			args.sampleMultiplier = sampleMultiplier;
+			args.samplePositions = samplePositions;
+			args.dataPtr = dataStart;
+			
+			workItem item;
+			item.func = TraceRay;
+			item.args = args;
+
+			lock_guard<mutex> lk(queueMutex);
+				workQueue.push(item);
+				cond.notify_one();
+
+			dataStart += 3;
+		}
+	}
+}
+#else
+void TraceRay(float x, float y, Camera& camera, Vector3* samplePositions, PrimitiveList* primList, float sampleMultiplier, unsigned char* dataPtr)
+{
+	Vector3 result(0.0f);
+
+	for (int sample = 0; sample < NUM_SAMPLES; sample++)
+	{
+		float u = x + samplePositions[sample][X];
+		float v = y + samplePositions[sample][Y];
+		Ray r = camera.GetRay(u,v);
+		result += BGColor(r, primList, 1);
+	}
+
+	result *= sampleMultiplier;
+
+	unsigned char vals[3] = { unsigned char(sqrtf(result[Z]) * 255.99f),
+							  unsigned char(sqrtf(result[Y]) * 255.99f),
+							  unsigned char(sqrtf(result[X]) * 255.99f) };
+
+	memcpy((void*)dataPtr, (void*)vals, 3);
+}
+
+void TraceRays(int startY, int finishY, int startX, int finishX, float horizIncr, float vertIncr, Camera& camera, Vector3* samplePositions, PrimitiveList* primList, float sampleMultiplier,
+	unsigned char* dataPtr)
+{
+	for (int i = 0; i < HEIGHT; i++) {
 
 		unsigned char* dataStart = dataPtr + i * SPAN_LENGTH;
 
-		for (int j = startX; j < finishX; j++)
+		for (int j = 0; j < WIDTH; j++)
 		{
 			Vector3 result;
 			float u = (float)j * horizIncr;
 			float v = (float)i * vertIncr;
-			if (NUM_SAMPLES == 1)
-			{
-				Ray r = camera.GetRay(u, v);
-				result = BGColor(r, primList, 1);
-			}
-			else
-			{
-				for (int sample = 0; sample < NUM_SAMPLES; sample++)
-				{
-					Ray r = camera.GetRay(u + samplePositions[sample][X], v + samplePositions[sample][Y]);
-					result += BGColor(r, primList, 1);
-				}
-			}
 
-
-			result *= sampleMultiplier;
-
-			*dataStart = unsigned char(sqrtf(result[Z]) * 255.99f);
-			dataStart++;
-
-			*dataStart = unsigned char(sqrtf(result[Y]) * 255.99f);
-			dataStart++;
-
-			*dataStart = unsigned char(sqrtf(result[X]) * 255.99f);
-			dataStart++;
+			TraceRay(u, v, camera, samplePositions, primList, sampleMultiplier, dataStart);
+			dataStart += 3;
 		}
 	}
 }
+#endif 
+
 
 int main() {
 
@@ -222,36 +339,78 @@ int main() {
 	PrimitiveList *primList  = CreateScene();
 
 #ifndef MULTICORE
+	auto startTime = chrono::high_resolution_clock::now();
 	TraceRays(0, HEIGHT, 0, WIDTH, horizIncr, vertIncr, camera, samplePositions, primList, sampleMultiplier, dataPtr);
+	auto endTime = chrono::high_resolution_clock::now();
+
+	chrono::duration<double> execTime = endTime - startTime;
+
+	cout << "Time taken : " << execTime.count() << " seconds" << endl;
 #else
 
 	int numCores = thread::hardware_concurrency();
 
-	thread *traceThreads = new thread[numCores];
-	int halfcores = numCores / 2;
+	thread *traceThreads = new thread[numCores-1];
 
-	int xIncr = WIDTH / halfcores;
-	int dataStride = xIncr * 3;
+	int yIncr = HEIGHT / numCores;
+	int dataStride = WIDTH * yIncr * 3;
+
+	for (int i = 0; i < (numCores - 1); i++)
+		traceThreads[i] = thread(WorkerThread);
 
 	auto startTime = chrono::high_resolution_clock::now();
 
-	for (int i = 0; i < halfcores; i++)
-	{
-		int xStart = xIncr * i;
-		int xEnd = xStart + xIncr;
-		dataPtr = data + i * dataStride;
-		traceThreads[i] = thread(TraceRays, 0, HEIGHT / 2, xStart, xEnd, horizIncr, vertIncr, std::ref(camera), samplePositions, primList, sampleMultiplier, dataPtr);
-	}
 
-	for (int i = halfcores; i < numCores; i++)
-	{
-		int xStart = xIncr * (i - halfcores);
-		int xEnd = xStart + xIncr;
-		dataPtr = data + i * dataStride;
-		traceThreads[i] = thread(TraceRays, HEIGHT / 2 - 1, HEIGHT, xStart, xEnd, horizIncr, vertIncr, std::ref(camera), samplePositions, primList, sampleMultiplier, dataPtr);
-	}
+	for (int i = 0; i < HEIGHT; i++) {
 
-	for (int i = 0; i < numCores; i++)
+		for (int j = 0; j < WIDTH; j++)
+		{
+			//Vector3 result;
+			float u = (float)j * horizIncr;
+			float v = (float)i * vertIncr;
+
+			RayArgs args;
+			args.cam = &camera;
+			args.x = u;
+			args.y = v;
+			args.primList = primList;
+			args.sampleMultiplier = sampleMultiplier;
+			args.samplePositions = samplePositions;
+			args.dataPtr = dataPtr;
+
+			workItem item;
+			item.func = TraceRay;
+			item.args = args;
+
+			lock_guard<mutex> lk(queueMutex);
+			workQueue.push(item);
+			cond.notify_one();
+
+			dataPtr += 3;
+		}
+	}
+	
+	while (!workQueue.empty()) cond.notify_one();
+
+	notFinished = false;
+
+	RayArgs args;
+	args.cam = &camera;
+	args.x = 0;
+	args.y = 0;
+	args.primList = primList;
+	args.sampleMultiplier = sampleMultiplier;
+	args.samplePositions = samplePositions;
+	args.dataPtr = 0;
+
+	workItem item;
+	item.func = TraceRay;
+	item.args = args;
+
+	workQueue.push(item);
+	cond.notify_all();
+
+	for (int i = 0; i < (numCores - 1); i++)
 	{
 		traceThreads[i].join();
 	}
@@ -268,6 +427,8 @@ int main() {
 
 	OutputPPM(WIDTH, HEIGHT, (char*)data);
 	
+	delete[] data;
+
 	Primitive** primitives = primList->GetList();
 	delete[] primitives;
 
