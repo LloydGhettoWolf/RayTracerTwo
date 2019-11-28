@@ -6,6 +6,7 @@
 #include <time.h>
 #include <string>
 #include <thread>
+#include <chrono>
 
 #include "Ray.h"
 #include "Primitive.h"
@@ -232,6 +233,8 @@ int main() {
 	int xIncr = WIDTH / halfcores;
 	int dataStride = xIncr * 3;
 
+	auto startTime = chrono::high_resolution_clock::now();
+
 	for (int i = 0; i < halfcores; i++)
 	{
 		int xStart = xIncr * i;
@@ -252,6 +255,13 @@ int main() {
 	{
 		traceThreads[i].join();
 	}
+
+	auto endTime = chrono::high_resolution_clock::now();
+
+	chrono::duration<double> execTime = endTime - startTime;
+
+	cout << "Time taken : " << execTime.count() << " seconds" << endl;
+
 
 	delete[] traceThreads;
 #endif
