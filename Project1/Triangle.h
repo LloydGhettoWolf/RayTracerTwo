@@ -28,9 +28,7 @@ public:
 	}
 
 
-	virtual bool IntersectWithAABB(OctreeNode* aabb) const { return true; }
-
-	bool Hit(const Ray& r, float tMin, float tMax, HitRecord& record) const;
+	bool Hit(const Ray& r, float tMin, float tMax, HitRecord& record, int depth)  const override;
 
 private:
 	Vector3 mVertices[3];

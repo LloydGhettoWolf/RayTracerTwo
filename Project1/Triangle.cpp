@@ -1,7 +1,7 @@
 #include "Triangle.h"
 #include "Globals.h"
 
-bool Triangle::Hit(const Ray& r, float tMin, float tMax, HitRecord& record) const
+bool Triangle::Hit(const Ray& r, float tMin, float tMax, HitRecord& record, int depth) const
 {
 	// does the ray intersect with the plane that the triangle describes?
 #ifdef GETSTATS

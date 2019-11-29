@@ -121,6 +121,8 @@ PrimitiveList* CreateScene()
 
 	Vector3 triVerts[3];
 
+	Vector3 eye(3.0f, 2.0f, 10.0f);
+
 	triVerts[0] = Vector3(-2.0f, 0.0f, 0.0f);
 	triVerts[1] = Vector3(2.0f, 0.0f, 0.0f);
 	triVerts[2] = Vector3(2.0f, 2.0f, 0.0f);
@@ -128,7 +130,7 @@ PrimitiveList* CreateScene()
 	int i = 0;
 
 	list[i++] = new Triangle( triVerts, new Metal(Vector3(0.5f, 0.5f, 0.5f), 0.05f));
-	list[i++] = new Sphere(Vector3(0.0f, -1000.0f, 0.0f), 1000.0f, new Lambertian(Vector3(0.5f, 0.5f, 0.5f)));
+	list[i++] = new Sphere(Vector3(0.0f, -1000.0f, 0.0f), 1000.0f, new Lambertian(Vector3(0.5f, 0.5f, 0.5f)), eye);
 
 
 	size_t sphereSz = sizeof(Sphere);
@@ -141,15 +143,15 @@ PrimitiveList* CreateScene()
 			Vector3 center((float)a + (2.0f * RandFloat() -1.0f), 0.225f, b + (2.0f * RandFloat() - 1.0f));
 			if (chooseMat < 0.8f)
 			{
-				list[i++] = new Sphere(center, 0.25f, new Lambertian(Vector3(RandFloat(), RandFloat(), RandFloat())));
+				list[i++] = new Sphere(center, 0.25f, new Lambertian(Vector3(RandFloat(), RandFloat(), RandFloat())), eye);
 			}
 			else if (chooseMat < 0.95f)
 			{
-				list[i++] = new  Sphere(center, 0.25f, new Metal(Vector3(RandFloat(), RandFloat(), RandFloat()), 0.3f * RandFloat()));
+				list[i++] = new  Sphere(center, 0.25f, new Metal(Vector3(RandFloat(), RandFloat(), RandFloat()), 0.3f * RandFloat()), eye);
 			}
 			else
 			{
-				list[i++] = new Sphere(center, 0.25f, new Dialectric(1.5f));
+				list[i++] = new Sphere(center, 0.25f, new Dialectric(1.5f), eye);
 			}
 		}
 	}
@@ -180,7 +182,7 @@ Vector3 BGColor(const Ray& r, PrimitiveList* list, int depth)
 {
 	HitRecord rec;
 
-	if (list->Hit(r, 0.01f, 9999.9f, rec))
+	if (list->Hit(r, 0.01f, 9999.9f, rec, depth))
 	{
 		Ray scattered;
 		Vector3 attenuation;

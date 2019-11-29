@@ -1,7 +1,7 @@
 #include "Sphere.h"
 #include "Globals.h"
 
-bool Sphere::Hit(const Ray& r, float tMin, float tMax, HitRecord& record) const
+bool Sphere::Hit(const Ray& r, float tMin, float tMax, HitRecord& record, int depth) const
 {
 #ifdef GETSTATS
 	IncreaseIntersections();

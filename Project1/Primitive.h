@@ -15,6 +15,6 @@ struct HitRecord {
 class Primitive
 {
 public:
-	virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& record) const { return true; };
+	virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& record, int depth) const = 0;
 	virtual ~Primitive() {};
 };
