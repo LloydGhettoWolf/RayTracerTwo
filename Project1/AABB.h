@@ -24,12 +24,12 @@ int BoxXCompare(const void* a, const void* b);
 int BoxYCompare(const void* a, const void* b);
 int BoxZCompare(const void* a, const void* b);
 
-//inline float FMin(float a, float b)
-//{
-//	return a < b ? a : b;
-//}
-//
-//inline float FMax(float a, float b)
-//{
-//	return a > b ? a : b;
-//}
+inline float FMin(float a, float b)
+{
+	return a < b ? a : b;
+}
+
+inline float FMax(float a, float b)
+{
+	return a > b ? a : b;
+}

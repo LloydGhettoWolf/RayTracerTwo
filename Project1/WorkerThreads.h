@@ -13,7 +13,7 @@ struct RayArgs
 	float y;
 	Camera* cam;
 	Vector3* samplePositions;
-	PrimitiveList** primList;
+	Primitive* primList;
 	float sampleMultiplier;
 	unsigned char* dataPtr;
 };

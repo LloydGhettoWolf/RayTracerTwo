@@ -23,19 +23,18 @@
 
 using namespace std;
 
-const int WIDTH  = 640;
-const int HEIGHT = 480;
+const int WIDTH  = 1080;
+const int HEIGHT = 920;
 const float ASPECT = (float)WIDTH / (float)HEIGHT;
 const int NUM_COLS_PER_PIXEL = 3;
 
 const int SPAN_LENGTH = WIDTH * NUM_COLS_PER_PIXEL;
 
-const int NUM_SAMPLES = 4;
-const int DEPTH = 20;
+const int NUM_SAMPLES = 16;
+const int DEPTH = 15;
 
 const int NUM_SPHERES = 6;
 
-const int NODE_DIMENSION = 16;
 
 const static string fileName = "test.tga";
 
@@ -106,10 +105,10 @@ PrimitiveList* CreateScene()
 		}
 	}
 
-	/*
-	list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), 1.0f, new Dialectric(1.5f));
-	list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), -0.95f, new Dialectric(1.5f));
-	list[i++] = new Sphere(Vector3(2.0f, 1.0f, 0.0f), 1.0f, new Metal(Vector3(0.7f, 0.6f, 0.5f), 0.0f));*/
+	
+	list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), 1.0f, new Dialectric(1.5f), eye);
+	list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), -0.95f, new Dialectric(1.5f), eye);
+	list[i++] = new Sphere(Vector3(2.0f, 1.0f, 0.0f), 1.0f, new Metal(Vector3(0.7f, 0.6f, 0.5f), 0.0f), eye);
 
 	return new PrimitiveList(list, i);
 }
@@ -128,7 +127,7 @@ Vector3 RandOffset(float xVar, float yVar)
 
 
 
-Vector3 BGColor(const Ray& r, PrimitiveList* list, int depth)
+Vector3 BGColor(const Ray& r, Primitive* list, int depth)
 {
 	HitRecord rec;
 
@@ -165,7 +164,7 @@ void* TraceRay(void* arg)
 		float u = args->x + args->samplePositions[sample][X];
 		float v = args->y + args->samplePositions[sample][Y];
 		Ray r = args->cam->GetRay(u, v);
-		result += BGColor(r, *args->primList, 1);
+		result += BGColor(r, args->primList, 1);
 	}
 
 	result *= args->sampleMultiplier;
@@ -179,7 +178,7 @@ void* TraceRay(void* arg)
 	return nullptr;
 }
 
-void TraceRays(int startY, int finishY, int startX, int finishX, float horizIncr, float vertIncr, Camera& camera, Vector3* samplePositions, PrimitiveList* primList, float sampleMultiplier,
+void TraceRays(int startY, int finishY, int startX, int finishX, float horizIncr, float vertIncr, Camera& camera, Vector3* samplePositions, Primitive* primList, float sampleMultiplier,
 	unsigned char* dataPtr)
 {
 
@@ -199,7 +198,7 @@ void TraceRays(int startY, int finishY, int startX, int finishX, float horizIncr
 			args.cam = &camera;
 			args.x = u;
 			args.y = v;
-			args.primList = &primList;
+			args.primList = primList;
 			args.sampleMultiplier = sampleMultiplier;
 			args.samplePositions = samplePositions;
 			args.dataPtr = dataStart;
@@ -261,7 +260,7 @@ void TraceRays(int startY, int finishY, int startX, int finishX, float horizIncr
 
 int main() {
 
-	//srand(time(0));
+	srand(time(0));
 	size_t dataSz = WIDTH * HEIGHT * NUM_COLS_PER_PIXEL;
 	unsigned char* data = new unsigned char[dataSz];
 	unsigned char* dataPtr = data;
@@ -280,23 +279,29 @@ int main() {
 
 
 	float R = PI * 0.25f;
-	Vector3 eye(3.0f, 2.0f, 10.0f);
+	Vector3 eye(3.0f, 8.0f, 30.0f);
 	Vector3 focus(0.0f, 0.5f, 0.0f);
 	Vector3 up(0.0f, 1.0f, 0.0f);
 
-	Camera camera(eye, focus, up, 20.0f, ASPECT, 0.1f, 10.0f);
+	Camera camera(eye, focus, up, 20.0f, ASPECT, 0.1f, 20.0f);
 
 
 	PrimitiveList *primList  = CreateScene();
 
-	//BVHNode root()
-
-#ifndef MULTICORE
 	auto startTime = chrono::high_resolution_clock::now();
-	TraceRays(0, HEIGHT, 0, WIDTH, horizIncr, vertIncr, camera, samplePositions, primList, sampleMultiplier, dataPtr);
+		BVHNode root(primList->GetList(), primList->GetSize(), 0.0f, 1.0f);
 	auto endTime = chrono::high_resolution_clock::now();
 
 	chrono::duration<double> execTime = endTime - startTime;
+
+	cout << "Time taken to build bvh : " << execTime.count() << " seconds" << endl;
+
+#ifndef MULTICORE
+	startTime = chrono::high_resolution_clock::now();
+	TraceRays(0, HEIGHT, 0, WIDTH, horizIncr, vertIncr, camera, samplePositions, primList, sampleMultiplier, dataPtr);
+	endTime = chrono::high_resolution_clock::now();
+
+	execTime = endTime - startTime;
 
 	cout << "Time taken : " << execTime.count() << " seconds" << endl;
 #else
@@ -311,7 +316,7 @@ int main() {
 	for (int i = 0; i < (numCores - 1); i++)
 		traceThreads[i] = thread(WorkerThread);
 
-	auto startTime = chrono::high_resolution_clock::now();
+	startTime = chrono::high_resolution_clock::now();
 
 
 	for (int i = 0; i < HEIGHT; i++) {
@@ -326,7 +331,7 @@ int main() {
 			args.cam = &camera;
 			args.x = u;
 			args.y = v;
-			args.primList = &primList;
+			args.primList = &root;
 			args.sampleMultiplier = sampleMultiplier;
 			args.samplePositions = samplePositions;
 			args.dataPtr = dataPtr;
@@ -351,7 +356,7 @@ int main() {
 	args.cam = &camera;
 	args.x = 0;
 	args.y = 0;
-	args.primList = &primList;
+	args.primList = &root;
 	args.sampleMultiplier = sampleMultiplier;
 	args.samplePositions = samplePositions;
 	args.dataPtr = 0;
@@ -368,9 +373,9 @@ int main() {
 		traceThreads[i].join();
 	}
 
-	auto endTime = chrono::high_resolution_clock::now();
+	endTime = chrono::high_resolution_clock::now();
 
-	chrono::duration<double> execTime = endTime - startTime;
+	execTime = endTime - startTime;
 
 	cout << "Time taken : " << execTime.count() << " seconds" << endl;
 
