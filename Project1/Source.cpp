@@ -19,11 +19,12 @@
 #include "Camera.h"
 #include "Globals.h"
 #include "WorkerThreads.h"
+#include "BVHNode.h"
 
 using namespace std;
 
-const int WIDTH  = 1920;
-const int HEIGHT = 1080;
+const int WIDTH  = 640;
+const int HEIGHT = 480;
 const float ASPECT = (float)WIDTH / (float)HEIGHT;
 const int NUM_COLS_PER_PIXEL = 3;
 
@@ -81,7 +82,7 @@ PrimitiveList* CreateScene()
 
 	int i = 0;
 
-	list[i++] = new Triangle( triVerts, new Metal(Vector3(0.5f, 0.5f, 0.5f), 0.05f));
+	//list[i++] = new Triangle( triVerts, new Metal(Vector3(0.5f, 0.5f, 0.5f), 0.05f));
 	list[i++] = new Sphere(Vector3(0.0f, -1000.0f, 0.0f), 1000.0f, new Lambertian(Vector3(0.5f, 0.5f, 0.5f)), eye);
 
 	for (int a = -NUM_SPHERES; a < NUM_SPHERES; a++)
@@ -164,7 +165,7 @@ void* TraceRay(void* arg)
 		float u = args->x + args->samplePositions[sample][X];
 		float v = args->y + args->samplePositions[sample][Y];
 		Ray r = args->cam->GetRay(u, v);
-		result += BGColor(r, args->primList, 1);
+		result += BGColor(r, *args->primList, 1);
 	}
 
 	result *= args->sampleMultiplier;
@@ -198,7 +199,7 @@ void TraceRays(int startY, int finishY, int startX, int finishX, float horizIncr
 			args.cam = &camera;
 			args.x = u;
 			args.y = v;
-			args.primList = primList;
+			args.primList = &primList;
 			args.sampleMultiplier = sampleMultiplier;
 			args.samplePositions = samplePositions;
 			args.dataPtr = dataStart;
@@ -288,6 +289,8 @@ int main() {
 
 	PrimitiveList *primList  = CreateScene();
 
+	//BVHNode root()
+
 #ifndef MULTICORE
 	auto startTime = chrono::high_resolution_clock::now();
 	TraceRays(0, HEIGHT, 0, WIDTH, horizIncr, vertIncr, camera, samplePositions, primList, sampleMultiplier, dataPtr);
@@ -323,7 +326,7 @@ int main() {
 			args.cam = &camera;
 			args.x = u;
 			args.y = v;
-			args.primList = primList;
+			args.primList = &primList;
 			args.sampleMultiplier = sampleMultiplier;
 			args.samplePositions = samplePositions;
 			args.dataPtr = dataPtr;
@@ -348,7 +351,7 @@ int main() {
 	args.cam = &camera;
 	args.x = 0;
 	args.y = 0;
-	args.primList = primList;
+	args.primList = &primList;
 	args.sampleMultiplier = sampleMultiplier;
 	args.samplePositions = samplePositions;
 	args.dataPtr = 0;

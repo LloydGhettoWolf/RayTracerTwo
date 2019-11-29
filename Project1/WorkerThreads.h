@@ -4,6 +4,7 @@
 
 class Camera;
 class Vector3;
+class Primitive;
 class PrimitiveList;
 
 struct RayArgs
@@ -12,7 +13,7 @@ struct RayArgs
 	float y;
 	Camera* cam;
 	Vector3* samplePositions;
-	PrimitiveList* primList;
+	PrimitiveList** primList;
 	float sampleMultiplier;
 	unsigned char* dataPtr;
 };
