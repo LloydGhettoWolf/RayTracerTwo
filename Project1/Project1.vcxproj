@@ -133,6 +133,7 @@
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="Triangle.cpp" />
+    <ClCompile Include="WorkerThreads.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
@@ -145,6 +146,7 @@
     <ClInclude Include="Triangle.h" />
     <ClInclude Include="Vector3.h" />
     <ClInclude Include="Vector3Simd.h" />
+    <ClInclude Include="WorkerThreads.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

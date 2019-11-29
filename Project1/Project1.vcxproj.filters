@@ -7,6 +7,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Globals.cpp" />
     <ClCompile Include="Materials.cpp" />
+    <ClCompile Include="WorkerThreads.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vector3.h" />
@@ -19,5 +20,6 @@
     <ClInclude Include="Vector3Simd.h" />
     <ClInclude Include="Triangle.h" />
     <ClInclude Include="Globals.h" />
+    <ClInclude Include="WorkerThreads.h" />
   </ItemGroup>
 </Project>

@@ -18,31 +18,7 @@
 #include "Triangle.h"
 #include "Camera.h"
 #include "Globals.h"
-
-struct RayArgs
-{
-	float x;
-	float y;
-	Camera* cam;
-	Vector3* samplePositions;
-	PrimitiveList* primList;
-	float sampleMultiplier;
-	unsigned char* dataPtr;
-};
-
-typedef  void* (*vdFunc)(void*);
-
-struct workItem
-{
-	vdFunc func;
-	RayArgs args;
-};
-
-std::mutex queueMutex;
-std::queue<workItem> workQueue;
-std::condition_variable cond;
-
-bool notFinished = true;
+#include "WorkerThreads.h"
 
 using namespace std;
 
@@ -69,30 +45,6 @@ const static string fileName = "test.tga";
 // will we run on multicore?
 #define MULTICORE
 
-void WorkerThread()
-{
-	while (true)
-	{
-		std::unique_lock<std::mutex> lk(queueMutex);
-		cond.wait(lk, [] { return !workQueue.empty(); });
-
-		if (notFinished)
-		{
-			if (!workQueue.empty())
-			{
-				workItem item = workQueue.front();
-				workQueue.pop();
-				lk.unlock();
-				item.func((void*)&item.args);
-			}
-		}
-		else
-		{
-			break;
-		}
-
-	}
-}
 
 void OutputPPM(int width, int height, char* data)
 {
@@ -131,9 +83,6 @@ PrimitiveList* CreateScene()
 
 	list[i++] = new Triangle( triVerts, new Metal(Vector3(0.5f, 0.5f, 0.5f), 0.05f));
 	list[i++] = new Sphere(Vector3(0.0f, -1000.0f, 0.0f), 1000.0f, new Lambertian(Vector3(0.5f, 0.5f, 0.5f)), eye);
-
-
-	size_t sphereSz = sizeof(Sphere);
 
 	for (int a = -NUM_SPHERES; a < NUM_SPHERES; a++)
 	{
