@@ -14,12 +14,12 @@ public:
 	Vector3(float value) : values{ value, value, value } {};
 	Vector3(float x, float y, float z) : values{ x, y, z} {};
 
-	inline Vector3 operator+(const Vector3& rhs);
-	inline Vector3 operator-(const Vector3& rhs);
-	inline Vector3 operator*(float multiplier);
-	inline Vector3 operator*(const Vector3& rhs);
-	inline Vector3 operator/(const Vector3& rhs);
-	inline Vector3 operator/(float divisor);
+	inline Vector3 operator+(const Vector3& rhs) const;
+	inline Vector3 operator-(const Vector3& rhs) const;
+	inline Vector3 operator*(float multiplier)   const;
+	inline Vector3 operator*(const Vector3& rhs) const;
+	inline Vector3 operator/(const Vector3& rhs) const;
+	inline Vector3 operator/(float divisor) const;
 	
 	inline Vector3& operator+=(const Vector3& rhs);
 	inline Vector3& operator-=(const Vector3& rhs);
@@ -46,8 +46,6 @@ private:
 };
 
 inline Vector3 operator*(float multiplier, const Vector3& rhs);
-inline Vector3 operator+(const Vector3& lhs, const Vector3& rhs);
-inline Vector3 operator-(const Vector3& lhs, const Vector3& rhs);
 
 inline Vector3 RandinUnitSphere();
 inline Vector3 Reflect(const Vector3& vector, const Vector3& normal);
@@ -63,33 +61,33 @@ inline float MaxComponent(const Vector3& vec);
 
 static float randValues[256];
 
-Vector3 Vector3::operator+(const Vector3& rhs)
+Vector3 Vector3::operator+(const Vector3& rhs) const
 {
 	return Vector3(mX + rhs.mX, mY + rhs.mY, mZ + rhs.mZ);
 }
 
-Vector3 Vector3::operator-(const Vector3& rhs)
+Vector3 Vector3::operator-(const Vector3& rhs) const
 {
 	return Vector3(mX - rhs.mX, mY - rhs.mY, mZ - rhs.mZ);
 }
 
-Vector3 Vector3::operator*(float multiplier)
+Vector3 Vector3::operator*(float multiplier) const
 {
 	return Vector3(multiplier * mX, multiplier * mY, multiplier * mZ);
 }
 
-Vector3 Vector3::operator*(const Vector3& rhs)
+Vector3 Vector3::operator*(const Vector3& rhs) const
 {
 	return Vector3(mX * rhs[X], mY * rhs[Y], mZ * rhs[Z]);
 }
 
-Vector3 Vector3::operator/(float divisor)
+Vector3 Vector3::operator/(float divisor) const
 {
 	float multiplier = 1.0f / divisor;
 	return Vector3(multiplier * mX, multiplier * mY, multiplier * mZ);
 }
 
-Vector3 Vector3::operator/(const Vector3& rhs)
+Vector3 Vector3::operator/(const Vector3& rhs) const
 {
 	return Vector3(mX / rhs[X], mY / rhs[Y], mZ / rhs[Z]);
 }
@@ -126,16 +124,6 @@ Vector3 Vector3::operator-() const
 Vector3 operator*(float multiplier, const Vector3& rhs)
 {
 	return Vector3(multiplier * rhs[X], multiplier * rhs[Y], multiplier * rhs[Z]);
-}
-
-Vector3 operator+(const Vector3& lhs, const Vector3& rhs)
-{
-	return Vector3(lhs[X] + rhs[X], lhs[Y] + rhs[Y], lhs[Z] + rhs[Z]);
-}
-
-Vector3 operator-(const Vector3& lhs, const Vector3& rhs)
-{
-	return Vector3(lhs[X] - rhs[X], lhs[Y] - rhs[Y], lhs[Z] - rhs[Z]);
 }
 
 const float& Vector3::operator[](int index) const
