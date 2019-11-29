@@ -1,6 +1,5 @@
 #pragma once
 #include "Primitive.h"
-#include "OctreeNode.h"
 #include <math.h>
 
 class Material;
@@ -17,7 +16,6 @@ public:
 	}
 
 	virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& record) const;
-	virtual bool IntersectWithAABB(OctreeNode* aabb) const;
 private:
 	Vector3 mCenter;
 	int padding = 0;

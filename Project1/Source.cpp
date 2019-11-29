@@ -17,7 +17,6 @@
 #include "Sphere.h"
 #include "Triangle.h"
 #include "Camera.h"
-#include "OctreeNode.h"
 #include "Globals.h"
 
 struct RayArgs
@@ -54,10 +53,10 @@ const int NUM_COLS_PER_PIXEL = 3;
 
 const int SPAN_LENGTH = WIDTH * NUM_COLS_PER_PIXEL;
 
-const int NUM_SAMPLES = 16;
-const int DEPTH = 25;
+const int NUM_SAMPLES = 4;
+const int DEPTH = 20;
 
-const int NUM_SPHERES = 8;
+const int NUM_SPHERES = 6;
 
 const int NODE_DIMENSION = 16;
 

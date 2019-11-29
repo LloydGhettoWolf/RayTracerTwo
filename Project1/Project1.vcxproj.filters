@@ -2,7 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="Source.cpp" />
-    <ClCompile Include="OctreeNode.cpp" />
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="Triangle.cpp" />
     <ClCompile Include="Camera.cpp" />
@@ -17,8 +16,6 @@
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Materials.h" />
-    <ClInclude Include="OctreeNode.h" />
-    <ClInclude Include="NodeType.h" />
     <ClInclude Include="Vector3Simd.h" />
     <ClInclude Include="Triangle.h" />
     <ClInclude Include="Globals.h" />

@@ -130,7 +130,6 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Globals.cpp" />
     <ClCompile Include="Materials.cpp" />
-    <ClCompile Include="OctreeNode.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="Triangle.cpp" />
@@ -139,8 +138,6 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="Materials.h" />
-    <ClInclude Include="NodeType.h" />
-    <ClInclude Include="OctreeNode.h" />
     <ClInclude Include="Primitive.h" />
     <ClInclude Include="PrimitiveList.h" />
     <ClInclude Include="Ray.h" />

@@ -36,27 +36,3 @@ bool Sphere::Hit(const Ray& r, float tMin, float tMax, HitRecord& record) const
 
 	return false;
 }
-
-bool Sphere::IntersectWithAABB(OctreeNode* aabb) const
-{
-	float min = 0.0f;
-	const Vector3& boxMin = aabb->GetMin();
-	const Vector3& boxMax = aabb->GetMax();
-
-	for (int i = 0; i < 3; i++)
-	{
-		if (mCenter[i] < boxMin[i])
-		{
-			min += sqrtf(abs(mCenter[i] - boxMin[i]));
-		}
-		else if (mCenter[i] > boxMax[i])
-		{
-			min += sqrtf(abs(mCenter[i] - boxMax[i]));
-		}
-	}
-
-	if (min <= mRadiusSq)
-		return true;
-
-	return false;
-}
