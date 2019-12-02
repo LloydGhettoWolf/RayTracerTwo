@@ -20,27 +20,29 @@
 #include "Globals.h"
 #include "WorkerThreads.h"
 #include "BVHNode.h"
+#include "Rectangle.h"
+#include "DiffuseLight.h"
 
 using namespace std;
 
-const int WIDTH  = 1080;
-const int HEIGHT = 920;
+const int WIDTH  = 1920;
+const int HEIGHT = 1080;
+
+const float vertIncr = 1.0f / float(HEIGHT);
+const float horizIncr = 1.0f / float(WIDTH);
+
+
 const float ASPECT = (float)WIDTH / (float)HEIGHT;
 const int NUM_COLS_PER_PIXEL = 3;
 
 const int SPAN_LENGTH = WIDTH * NUM_COLS_PER_PIXEL;
 
-const int NUM_SAMPLES = 16;
-const int DEPTH = 15;
+const int NUM_SAMPLES = 1024;
+const int DEPTH = 50;
 
-const int NUM_SPHERES = 6;
-
+const int NUM_SPHERES = 8;
 
 const static string fileName = "test.tga";
-
-
-// will we use accn structure or not?
-//#define ACCN
 
 // will we run on multicore?
 #define MULTICORE
@@ -71,13 +73,13 @@ PrimitiveList* CreateScene()
 	int n = 500;
 	Primitive** list = new Primitive* [n + 1];
 
-	Vector3 triVerts[3];
+	//Vector3 triVerts[3];
 
 	Vector3 eye(3.0f, 2.0f, 10.0f);
 
-	triVerts[0] = Vector3(-2.0f, 0.0f, 0.0f);
-	triVerts[1] = Vector3(2.0f, 0.0f, 0.0f);
-	triVerts[2] = Vector3(2.0f, 2.0f, 0.0f);
+	//triVerts[0] = Vector3(-2.0f, 0.0f, 0.0f);
+	//triVerts[1] = Vector3(2.0f, 0.0f, 0.0f);
+	//triVerts[2] = Vector3(2.0f, 2.0f, 0.0f);
 
 	int i = 0;
 
@@ -105,24 +107,22 @@ PrimitiveList* CreateScene()
 		}
 	}
 
-	
 	list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), 1.0f, new Dialectric(1.5f), eye);
 	list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), -0.95f, new Dialectric(1.5f), eye);
 	list[i++] = new Sphere(Vector3(2.0f, 1.0f, 0.0f), 1.0f, new Metal(Vector3(0.7f, 0.6f, 0.5f), 0.0f), eye);
+
+
+	list[i++] = new Sphere(Vector3(0.0f, 4.0f, 0.0f),     1.0f,    new DiffuseLight(Vector3(4.0f)), eye);
+	//list[i++] = new Rectangle(3.0f, 5.0f, 1.0f, 3.0f,    -2.0f,    new DiffuseLight(Vector3(4.0f)), RECT_TYPE::XY);
 
 	return new PrimitiveList(list, i);
 }
 
 
-Vector3 RandOffset(float xVar, float yVar) 
+float RandOffset(float var) 
 {
-	float randX = RandFloat();
-	float randY = RandFloat();
-
-	xVar = -(xVar * 0.5f) +  xVar * randX;
-	yVar = -(yVar * 0.5f) +  yVar * randY;
-
-	return Vector3(xVar, yVar, 0.0f);
+	float rand = RandFloat() * var;
+	return rand;
 }
 
 
@@ -135,20 +135,19 @@ Vector3 BGColor(const Ray& r, Primitive* list, int depth)
 	{
 		Ray scattered;
 		Vector3 attenuation;
-
+		Vector3 emittedLight = rec.matPtr->Emitted(1.0f, 1.0f, Vector3(1.0f));
 		if (depth < DEPTH && rec.matPtr->Scatter(r, rec, attenuation, scattered))
 		{
-			return attenuation * BGColor(scattered, list, depth + 1);
+			return emittedLight + attenuation * BGColor(scattered, list, depth + 1);
 		}
 		else
 		{
-			return Vector3(0.0f);
+			return emittedLight;
 		}
+	
 	}
 
-	Vector3 unitDir = r.GetDir();
-	float t = 0.5f * (unitDir[Y] + 1.0f);
-	return (1.0f - t) * Vector3(1.0f) + t * Vector3(0.5f, 0.7f, 1.0f);
+	return Vector3(0.0f);
 }
 
 #ifdef MULTICORE
@@ -161,8 +160,8 @@ void* TraceRay(void* arg)
 
 	for (int sample = 0; sample < NUM_SAMPLES; sample++)
 	{
-		float u = args->x + args->samplePositions[sample][X];
-		float v = args->y + args->samplePositions[sample][Y];
+		float u = args->x + RandOffset(horizIncr);
+		float v = args->y + RandOffset(vertIncr);
 		Ray r = args->cam->GetRay(u, v);
 		result += BGColor(r, args->primList, 1);
 	}
@@ -178,7 +177,7 @@ void* TraceRay(void* arg)
 	return nullptr;
 }
 
-void TraceRays(int startY, int finishY, int startX, int finishX, float horizIncr, float vertIncr, Camera& camera, Vector3* samplePositions, Primitive* primList, float sampleMultiplier,
+void TraceRays(int startY, int finishY, int startX, int finishX, float horizIncr, float vertIncr, Camera& camera, Primitive* primList, float sampleMultiplier,
 	unsigned char* dataPtr)
 {
 
@@ -200,7 +199,6 @@ void TraceRays(int startY, int finishY, int startX, int finishX, float horizIncr
 			args.y = v;
 			args.primList = primList;
 			args.sampleMultiplier = sampleMultiplier;
-			args.samplePositions = samplePositions;
 			args.dataPtr = dataStart;
 			
 			workItem item;
@@ -268,15 +266,8 @@ int main() {
 	float x = 0.0f, y = 0.0f;
 
 	float aspect = 1.0f / ASPECT;
-	float vertIncr = 1.0f / float(HEIGHT);
-	float horizIncr = 1.0f / float(WIDTH);
 
-	Vector3 samplePositions[NUM_SAMPLES];
 	float sampleMultiplier = 1.0f / (float)NUM_SAMPLES;
-
-	for (int sample = 0; sample < NUM_SAMPLES; sample++)
-		samplePositions[sample] = RandOffset(horizIncr, vertIncr);
-
 
 	float R = PI * 0.25f;
 	Vector3 eye(3.0f, 8.0f, 30.0f);
@@ -333,7 +324,6 @@ int main() {
 			args.y = v;
 			args.primList = &root;
 			args.sampleMultiplier = sampleMultiplier;
-			args.samplePositions = samplePositions;
 			args.dataPtr = dataPtr;
 
 			workItem item;
@@ -358,7 +348,6 @@ int main() {
 	args.y = 0;
 	args.primList = &root;
 	args.sampleMultiplier = sampleMultiplier;
-	args.samplePositions = samplePositions;
 	args.dataPtr = 0;
 
 	workItem item;

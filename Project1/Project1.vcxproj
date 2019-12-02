@@ -132,6 +132,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Globals.cpp" />
     <ClCompile Include="Materials.cpp" />
+    <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="Triangle.cpp" />
@@ -141,11 +142,13 @@
     <ClInclude Include="AABB.h" />
     <ClInclude Include="BVHNode.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="DiffuseLight.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="Materials.h" />
     <ClInclude Include="Primitive.h" />
     <ClInclude Include="PrimitiveList.h" />
     <ClInclude Include="Ray.h" />
+    <ClInclude Include="Rectangle.h" />
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="Triangle.h" />
     <ClInclude Include="Vector3.h" />
