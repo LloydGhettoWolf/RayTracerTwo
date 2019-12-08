@@ -31,6 +31,9 @@
     <ClCompile Include="Rectangle.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="PrimitiveList.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AABB.h">
