@@ -12,16 +12,13 @@ bool AABB::Hit(const Ray& r, float tMin, float tMax) const
 
 	for (int axis = 0; axis < 3; axis++)
 	{
-		float invD = 1.0f / dir[axis];
-		float t0 = (mMin[axis] - origin[axis]) * invD;
-		float t1 = (mMax[axis] - origin[axis]) * invD;
-
-		if (invD < 0.0f)
-			swap(t0, t1);
+		float t0 = FMin((mMin[axis] - origin[axis]) / dir[axis],
+						(mMax[axis] - origin[axis]) / dir[axis]);
+		float t1 = FMax((mMin[axis] - origin[axis]) / dir[axis],
+			            (mMax[axis] - origin[axis]) / dir[axis]);
 
 		tMin = FMax(t0, tMin);
 		tMax = FMin(t1, tMax);
-
 		if (tMax <= tMin)
 			return false;
 	}

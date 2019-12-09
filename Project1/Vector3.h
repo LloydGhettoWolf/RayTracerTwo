@@ -176,7 +176,9 @@ Vector3 RandinUnitSphere()
 	float randZ = RandFloat();
 
 	Vector3 rand(randX, randY, randZ);
-	return rand * 2.0f - Vector3(1.0f, 1.0f, 1.0f);
+	rand *= 2.0f;
+	rand -= Vector3(1.0f);
+	return rand.GetNormalized();
 }
 
 Vector3 Reflect(const Vector3& vector, const Vector3& normal)

@@ -26,7 +26,7 @@ bool Sphere::Hit(const Ray& r, float tMin, float tMax, HitRecord& record, int de
 			{
 				record.t = temp;
 				record.point = origin + record.t * rayDir;
-				record.normal = (record.point - mCenter) / mRadius;
+				record.normal = (record.point - mCenter) * mInvRadius;
 				record.matPtr = mMatPtr;
 				return true;
 			}

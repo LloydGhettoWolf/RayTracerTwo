@@ -22,23 +22,23 @@
 #include "BVHNode.h"
 #include "Rectangle.h"
 #include "DiffuseLight.h"
+#include "Box.h"
 
 using namespace std;
 
-const int WIDTH  = 1920;
-const int HEIGHT = 1080;
+const int WIDTH  = 640;
+const int HEIGHT = 480;
 
 const float vertIncr = 1.0f / float(HEIGHT);
 const float horizIncr = 1.0f / float(WIDTH);
-
 
 const float ASPECT = (float)WIDTH / (float)HEIGHT;
 const int NUM_COLS_PER_PIXEL = 3;
 
 const int SPAN_LENGTH = WIDTH * NUM_COLS_PER_PIXEL;
 
-const int NUM_SAMPLES = 1024;
-const int DEPTH = 50;
+const int NUM_SAMPLES = 128;
+const int DEPTH = 25;
 
 const int NUM_SPHERES = 8;
 
@@ -68,14 +68,12 @@ void OutputPPM(int width, int height, char* data)
 }
 
 
-PrimitiveList* CreateScene()
+Primitive* CreateScene()
 {
 	int n = 500;
 	Primitive** list = new Primitive* [n + 1];
 
 	//Vector3 triVerts[3];
-
-	Vector3 eye(3.0f, 2.0f, 10.0f);
 
 	//triVerts[0] = Vector3(-2.0f, 0.0f, 0.0f);
 	//triVerts[1] = Vector3(2.0f, 0.0f, 0.0f);
@@ -83,46 +81,46 @@ PrimitiveList* CreateScene()
 
 	int i = 0;
 
-	//list[i++] = new Triangle( triVerts, new Metal(Vector3(0.5f, 0.5f, 0.5f), 0.05f));
-	list[i++] = new Sphere(Vector3(0.0f, -1000.0f, 0.0f), 1000.0f, new Lambertian(Vector3(0.5f, 0.5f, 0.5f)), eye);
+	////list[i++] = new Triangle( triVerts, new Metal(Vector3(0.5f, 0.5f, 0.5f), 0.05f));
+	list[i++] = new Sphere(Vector3(0.0f, -1000.0f, 0.0f), 1000.0f, new Lambertian(Vector3(0.5f, 0.5f, 0.5f)));
+	//
+	//for (int a = -NUM_SPHERES; a < NUM_SPHERES; a++)
+	//{
+	//	for (int b = -NUM_SPHERES; b < NUM_SPHERES; b++)
+	//	{
+	//		float chooseMat = RandFloat();
+	//		Vector3 center((float)a + (2.0f * RandFloat() -1.0f), 0.225f, b + (2.0f * RandFloat() - 1.0f));
+	//		if (chooseMat < 0.8f)
+	//		{
+	//			list[i++] = new Sphere(center, 0.25f, new Lambertian(Vector3(RandFloat(), RandFloat(), RandFloat())));
+	//		}
+	//		else if (chooseMat < 0.95f)
+	//		{
+	//			list[i++] = new  Sphere(center, 0.25f, new Metal(Vector3(RandFloat(), RandFloat(), RandFloat()), 0.3f * RandFloat()));
+	//		}
+	//		else
+	//		{
+	//			list[i++] = new Sphere(center, 0.25f, new Dialectric(1.5f));
+	//		}
+	//	}
+	//}
 
-	for (int a = -NUM_SPHERES; a < NUM_SPHERES; a++)
-	{
-		for (int b = -NUM_SPHERES; b < NUM_SPHERES; b++)
-		{
-			float chooseMat = RandFloat();
-			Vector3 center((float)a + (2.0f * RandFloat() -1.0f), 0.225f, b + (2.0f * RandFloat() - 1.0f));
-			if (chooseMat < 0.8f)
-			{
-				list[i++] = new Sphere(center, 0.25f, new Lambertian(Vector3(RandFloat(), RandFloat(), RandFloat())), eye);
-			}
-			else if (chooseMat < 0.95f)
-			{
-				list[i++] = new  Sphere(center, 0.25f, new Metal(Vector3(RandFloat(), RandFloat(), RandFloat()), 0.3f * RandFloat()), eye);
-			}
-			else
-			{
-				list[i++] = new Sphere(center, 0.25f, new Dialectric(1.5f), eye);
-			}
-		}
-	}
+	//list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), 1.0f, new Dialectric(1.5f));
+	//list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), -0.95f, new Dialectric(1.5f));
+	//list[i++] = new Sphere(Vector3(2.0f, 1.0f, 0.0f), 1.0f, new Metal(Vector3(0.7f, 0.6f, 0.5f), 0.0f));
 
-	list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), 1.0f, new Dialectric(1.5f), eye);
-	list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), -0.95f, new Dialectric(1.5f), eye);
-	list[i++] = new Sphere(Vector3(2.0f, 1.0f, 0.0f), 1.0f, new Metal(Vector3(0.7f, 0.6f, 0.5f), 0.0f), eye);
-
-
-	list[i++] = new Sphere(Vector3(0.0f, 4.0f, 0.0f),     1.0f,    new DiffuseLight(Vector3(4.0f)), eye);
 	//list[i++] = new Rectangle(3.0f, 5.0f, 1.0f, 3.0f,    -2.0f,    new DiffuseLight(Vector3(4.0f)), RECT_TYPE::XY);
 
-	return new PrimitiveList(list, i);
+	list[i++] = new Box(Vector3(-0.5f, 0.0f, 1.0f), Vector3(0.5f, 1.0f, 0.0f), new Metal(Vector3(0.7f, 0.6f, 0.5f), 0.0f));
+	list[i++] = new Sphere(Vector3(0.0f, 4.0f, 0.0f), 1.0f, new DiffuseLight(Vector3(4.0f)));
+	return new BVHNode(list, i, 0.0f, 1.0f);
 }
 
 
 float RandOffset(float var) 
 {
 	float rand = RandFloat() * var;
-	return rand;
+	return (rand * 2.0f) - var;
 }
 
 
@@ -270,17 +268,14 @@ int main() {
 	float sampleMultiplier = 1.0f / (float)NUM_SAMPLES;
 
 	float R = PI * 0.25f;
-	Vector3 eye(3.0f, 8.0f, 30.0f);
+	Vector3 eye(-6.0f, 5.0f, 20.0f);
 	Vector3 focus(0.0f, 0.5f, 0.0f);
 	Vector3 up(0.0f, 1.0f, 0.0f);
 
 	Camera camera(eye, focus, up, 20.0f, ASPECT, 0.1f, 20.0f);
 
-
-	PrimitiveList *primList  = CreateScene();
-
 	auto startTime = chrono::high_resolution_clock::now();
-		BVHNode root(primList->GetList(), primList->GetSize(), 0.0f, 1.0f);
+		Primitive* primList = CreateScene();
 	auto endTime = chrono::high_resolution_clock::now();
 
 	chrono::duration<double> execTime = endTime - startTime;
@@ -322,7 +317,7 @@ int main() {
 			args.cam = &camera;
 			args.x = u;
 			args.y = v;
-			args.primList = &root;
+			args.primList = primList;
 			args.sampleMultiplier = sampleMultiplier;
 			args.dataPtr = dataPtr;
 
@@ -346,7 +341,7 @@ int main() {
 	args.cam = &camera;
 	args.x = 0;
 	args.y = 0;
-	args.primList = &root;
+	args.primList = primList;
 	args.sampleMultiplier = sampleMultiplier;
 	args.dataPtr = 0;
 
@@ -375,11 +370,6 @@ int main() {
 	OutputPPM(WIDTH, HEIGHT, (char*)data);
 	
 	delete[] data;
-
-	Primitive** primitives = primList->GetList();
-	delete[] primitives;
-
-	delete[] primList;
 
 	
 #ifdef GETSTATS

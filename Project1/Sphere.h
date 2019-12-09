@@ -7,7 +7,7 @@ class Material;
 class Sphere : public Primitive
 {
 public:
-	Sphere(const Vector3 &center, float r, Material *matPtr, const Vector3 &camOrigin) : mCenter(center), mOC(camOrigin - mCenter), mRadius(r), mMatPtr(matPtr) { mRadiusSq = mRadius * mRadius;};
+	Sphere(const Vector3& center, float r, Material* matPtr) : mCenter(center), mRadius(r), mMatPtr(matPtr) { mRadiusSq = mRadius * mRadius; mInvRadius = 1.0f / mRadius; };
 
 	~Sphere() 
 	{ 
@@ -19,10 +19,8 @@ public:
 	virtual bool BoundingBox(float t0, float t1, AABB& box) const override;
 private:
 	Vector3 mCenter;
-	int padding = 0;
-	Vector3 mOC;
-	int padding2 = 0;
 	Material* mMatPtr;
 	float mRadius;
 	float mRadiusSq;
+	float mInvRadius;
 };
