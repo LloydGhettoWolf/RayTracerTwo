@@ -29,7 +29,7 @@ public:
 
 
 	bool Hit(const Ray& r, float tMin, float tMax, HitRecord& record, int depth)  const override;
-
+	Material* GetMaterial() const { return mMatPtr; }
 private:
 	Vector3 mVertices[3];
 	Vector3 mSides[3];

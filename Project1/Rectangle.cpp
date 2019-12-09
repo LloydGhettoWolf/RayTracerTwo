@@ -17,29 +17,31 @@ bool Rectangle::Hit(const Ray& r, float tMin, float tMax, HitRecord& record, int
 	if (t < tMin || t > tMax)
 		return false;
 
-	//int dim1, dim2;
+	int dim1, dim2;
 
-	//// get indices of sides needed
-	//if (mType != RECT_TYPE::XZ)
-	//{
-	//	dim1 = (index + 1) % 3;
-	//	dim2 = (index + 2) % 3;
-	//}
-	//else
-	//{
-	//	dim1 = index - 1;
-	//	dim2 = index + 1;
-	//}
+	// get indices of sides needed
+	if (mType != RECT_TYPE::XZ)
+	{
+		dim1 = (index + 1) % 3;
+		dim2 = (index + 2) % 3;
+	}
+	else
+	{
+		dim1 = index - 1;
+		dim2 = index + 1;
+	}
 
-	//float first  = origin[dim1] + t * dir[dim1];
-	//float second = origin[dim2] + t * dir[dim2];
+	float first  = origin[dim1] + t * dir[dim1];
+	float second = origin[dim2] + t * dir[dim2];
 
-	//if (first < mDim10 || first > mDim11 || second < mDim20 || second > mDim21)
-	//	return false;
+	if (first < mDim10 || first > mDim11 || second < mDim20 || second > mDim21)
+		return false;
 
 	record.t = t;
 	record.matPtr = mMatPtr;
 	record.point = origin + dir * t;
+	record.prim = (Primitive*)this;
+
 	Vector3 normal = Vector3(0.0f);
 
 	if (mFlip)

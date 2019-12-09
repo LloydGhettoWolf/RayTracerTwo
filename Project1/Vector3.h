@@ -58,6 +58,7 @@ inline Vector3 Min(const Vector3& first, const Vector3& second);
 inline float MinComponent(const Vector3& vec);
 inline float MaxComponent(const Vector3& vec);
 
+inline void ClampResult(Vector3& res);
 
 static float randValues[256];
 
@@ -228,9 +229,18 @@ float MaxComponent(const Vector3& vec)
 }
 
 
-
 float RandFloat()
 {
 	static float multiplier = 1.0f / (float)RAND_MAX;
 	return (float)rand() * multiplier; ;
+}
+
+
+inline void ClampResult(Vector3& res)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		if (res[i] < 0.0f) res[i] = 0.0f;
+		if (res[i] > 1.0f) res[i] = 1.0f;
+	}
 }

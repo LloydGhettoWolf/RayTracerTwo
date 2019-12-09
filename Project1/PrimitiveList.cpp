@@ -14,6 +14,7 @@ bool PrimitiveList::Hit(const Ray& r, float tMin, float tMax, HitRecord& record,
 			hitAnything = true;
 			closest = tempRec.t;
 			record = tempRec;
+			//record.prim = (Primitive*)this;
 		}
 	}
 

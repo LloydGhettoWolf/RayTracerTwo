@@ -37,12 +37,12 @@ const int NUM_COLS_PER_PIXEL = 3;
 
 const int SPAN_LENGTH = WIDTH * NUM_COLS_PER_PIXEL;
 
-const int NUM_SAMPLES = 16;
+const int NUM_SAMPLES = 256;
 const int DEPTH = 25;
 
-const int NUM_SPHERES = 8;
+const int NUM_SPHERES = 5;
 
-const static string fileName = "test.tga";
+const static string fileName = "lowSample.tga";
 
 // will we run on multicore?
 #define MULTICORE
@@ -67,6 +67,48 @@ void OutputPPM(int width, int height, char* data)
 	fclose(out);
 }
 
+void Denoise(int width, int height, unsigned char* origData, char** newData)
+{
+	int numBytes = width * height * NUM_COLS_PER_PIXEL;
+	*newData = new char[numBytes];
+	int kernelSize = 3;
+
+	for (int y = 0; y < height; y++)
+	{
+		for (int x = 0; x < width; x++)
+		{
+			unsigned int r = 0, g = 0, b = 0;
+			int index = 0;
+			for (int kernY = -1; kernY <= 1; kernY++)
+			{
+				for (int kernX = -1; kernX <= 1; kernX++)
+				{
+					//index into data
+					int yLine = y + kernY;
+					int xLine = x + kernX;
+
+					xLine = xLine < 0 ? 0 : xLine;
+					xLine = xLine > WIDTH ? WIDTH : xLine;
+
+					yLine = yLine < 0 ? 0 : yLine;
+					yLine = yLine > HEIGHT ? HEIGHT : yLine;
+
+					index = (yLine * WIDTH + xLine) * NUM_COLS_PER_PIXEL;
+					b += origData[index];
+					g += origData[index+1];
+					r += origData[index+2];
+				}
+			}
+			index = (y * WIDTH + x) * NUM_COLS_PER_PIXEL;
+
+			(*newData)[index]     = unsigned char(b / 9);
+			(*newData)[index + 1] = unsigned char(g / 9);
+			(*newData)[index + 2] = unsigned char(r / 9);
+		}
+	}
+
+}
+
 
 Primitive* CreateScene()
 {
@@ -89,7 +131,7 @@ Primitive* CreateScene()
 		for (int b = -NUM_SPHERES; b < NUM_SPHERES; b++)
 		{
 			float chooseMat = RandFloat();
-			Vector3 center((float)a + (2.0f * RandFloat() -1.0f), 0.225f, b + (2.0f * RandFloat() - 1.0f));
+			Vector3 center((float)a + (2.0f * RandFloat() -1.0f) * 2.0f, 0.225f, b + (2.0f * RandFloat() - 1.0f));
 			if (chooseMat < 0.8f)
 			{
 				list[i++] = new Sphere(center, 0.25f, new Lambertian(Vector3(RandFloat(), RandFloat(), RandFloat())));
@@ -105,14 +147,16 @@ Primitive* CreateScene()
 		}
 	}
 
-	list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), 1.0f, new Dialectric(1.5f));
-	list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), -0.95f, new Dialectric(1.5f));
-	list[i++] = new Sphere(Vector3(2.0f, 1.0f, 0.0f), 1.0f, new Metal(Vector3(0.7f, 0.6f, 0.5f), 0.0f));
+	//list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), 1.0f, new Dialectric(1.5f));
+	//list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), -0.95f, new Dialectric(1.5f));
+	list[i++] = new Sphere(Vector3(2.0f, 1.0f, 0.0f), 1.0f, new Metal(Vector3(0.1f, 0.1f, 1.0f), 0.1f));
 
-	//list[i++] = new Rectangle(3.0f, 5.0f, 1.0f, 3.0f,    -2.0f,    new DiffuseLight(Vector3(4.0f)), RECT_TYPE::XY);
+	//list[i++] = new Rectangle(-0.5f, 0.5f,   0.0f, 0.5f,   0.5f, new DiffuseLight(Vector3(4.0f, 0.0f, 0.0f)), RECT_TYPE::YZ, true);
 
-	//list[i++] = new Box(Vector3(-0.5f, 0.0f, 1.0f), Vector3(0.5f, 1.0f, 0.0f), new Metal(Vector3(0.7f, 0.6f, 0.5f), 0.0f));
-	list[i++] = new Sphere(Vector3(0.0f, 4.0f, 0.0f), 1.0f, new DiffuseLight(Vector3(4.0f)));
+	list[i++] = new Box(Vector3(-0.5f, 0.0f, 0.0f), Vector3(0.5f, 1.0f, 1.0f), new DiffuseLight(Vector3(5.0f)));
+	list[i++] = new Sphere(Vector3(0.0f, 4.0f, 0.0f), 1.0f, new DiffuseLight(Vector3(4.0f, 0.0f, 0.0f)));
+	list[i++] = new Sphere(Vector3(8.0f, 4.0f, 0.0f), 1.0f, new DiffuseLight(Vector3(0.5f, 4.0f, 0.5f)));
+	list[i++] = new Sphere(Vector3(-8.0f, 4.0f, 0.0f), 1.0f, new DiffuseLight(Vector3(0.0f, 0.0f, 4.0f)));
 	return new BVHNode(list, i, 0.0f, 1.0f);
 }
 
@@ -169,6 +213,9 @@ void* TraceRay(void* arg)
 
 	result *= args->sampleMultiplier;
 
+	//clamp result
+	ClampResult(result);
+
 	unsigned char vals[3] = { unsigned char(sqrtf(result[Z]) * 255.99f),
 							  unsigned char(sqrtf(result[Y]) * 255.99f),
 							  unsigned char(sqrtf(result[X]) * 255.99f) };
@@ -215,19 +262,20 @@ void TraceRays(int startY, int finishY, int startX, int finishX, float horizIncr
 	}
 }
 #else
-void TraceRay(float x, float y, Camera& camera, Vector3* samplePositions, PrimitiveList* primList, float sampleMultiplier, unsigned char* dataPtr)
+void TraceRay(float x, float y, Camera& camera, Primitive* primList, unsigned char* dataPtr)
 {
 	Vector3 result(0.0f);
 
-	for (int sample = 0; sample < NUM_SAMPLES; sample++)
+	/*for (int sample = 0; sample < NUM_SAMPLES; sample++)
 	{
 		float u = x + samplePositions[sample][X];
 		float v = y + samplePositions[sample][Y];
 		Ray r = camera.GetRay(u,v);
 		result += BGColor(r, primList, 1);
-	}
+	}*/
 
-	result *= sampleMultiplier;
+	Ray r = camera.GetRay(x, y);
+	result += BGColor(r, primList, 1);
 
 	unsigned char vals[3] = { unsigned char(sqrtf(result[Z]) * 255.99f),
 							  unsigned char(sqrtf(result[Y]) * 255.99f),
@@ -236,8 +284,8 @@ void TraceRay(float x, float y, Camera& camera, Vector3* samplePositions, Primit
 	memcpy((void*)dataPtr, (void*)vals, 3);
 }
 
-void TraceRays(int startY, int finishY, int startX, int finishX, float horizIncr, float vertIncr, Camera& camera, Vector3* samplePositions, PrimitiveList* primList, float sampleMultiplier,
-	unsigned char* dataPtr)
+void TraceRays(int startY, int finishY, int startX, int finishX, float horizIncr, float vertIncr, Camera& camera, Primitive* primList,
+			   unsigned char* dataPtr)
 {
 	for (int i = 0; i < HEIGHT; i++) {
 
@@ -249,7 +297,7 @@ void TraceRays(int startY, int finishY, int startX, int finishX, float horizIncr
 			float u = (float)j * horizIncr;
 			float v = (float)i * vertIncr;
 
-			TraceRay(u, v, camera, samplePositions, primList, sampleMultiplier, dataStart);
+			TraceRay(u, v, camera, primList, dataStart);
 			dataStart += 3;
 		}
 	}
@@ -271,7 +319,7 @@ int main() {
 	float sampleMultiplier = 1.0f / (float)NUM_SAMPLES;
 
 	float R = PI * 0.25f;
-	Vector3 eye(-6.0f, 5.0f, 20.0f);
+	Vector3 eye(-3.0f, 5.0f, 20.0f);
 	Vector3 focus(0.0f, 0.5f, 0.0f);
 	Vector3 up(0.0f, 1.0f, 0.0f);
 
@@ -287,7 +335,7 @@ int main() {
 
 #ifndef MULTICORE
 	startTime = chrono::high_resolution_clock::now();
-	TraceRays(0, HEIGHT, 0, WIDTH, horizIncr, vertIncr, camera, samplePositions, primList, sampleMultiplier, dataPtr);
+	TraceRays(0, HEIGHT, 0, WIDTH, horizIncr, vertIncr, camera, primList, dataPtr);
 	endTime = chrono::high_resolution_clock::now();
 
 	execTime = endTime - startTime;
@@ -370,6 +418,8 @@ int main() {
 	delete[] traceThreads;
 #endif
 
+	//char* newData = nullptr;
+	//Denoise(WIDTH, HEIGHT, (unsigned char*)data, &newData);
 	OutputPPM(WIDTH, HEIGHT, (char*)data);
 	
 	delete[] data;
