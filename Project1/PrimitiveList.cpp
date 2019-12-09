@@ -1,10 +1,12 @@
 #include "PrimitiveList.h"
+#include "Sphere.h"
 
 bool PrimitiveList::Hit(const Ray& r, float tMin, float tMax, HitRecord& record, int depth) const
 {
 	HitRecord tempRec;
 	bool hitAnything = false;
 	float closest = tMax;
+
 
 	for (int i = 0; i < mSize; i++)
 	{
@@ -14,6 +16,7 @@ bool PrimitiveList::Hit(const Ray& r, float tMin, float tMax, HitRecord& record,
 			record = tempRec;
 		}
 	}
+
 	return hitAnything;
 }
 

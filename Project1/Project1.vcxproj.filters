@@ -34,9 +34,12 @@
     <ClCompile Include="PrimitiveList.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+<<<<<<< HEAD
     <ClCompile Include="Box.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+=======
+>>>>>>> a7d65b2d1f0244d417b88c2a87ffdca1b96eda36
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AABB.h">

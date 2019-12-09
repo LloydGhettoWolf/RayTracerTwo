@@ -10,10 +10,9 @@ bool Sphere::Hit(const Ray& r, float tMin, float tMax, HitRecord& record, int de
 	const Vector3& rayDir = r.GetDir();
 	const Vector3& origin = r.GetOrigin();
 	Vector3 oc = origin - mCenter;
-	float a = r.GetDot();
 	float b = oc.DotProduct(rayDir);
 	float c = oc.DotProduct(oc) - mRadiusSq;
-	float discriminant = b * b - a * c;
+	float discriminant = b * b - c;
 
 	if (discriminant > 0.0f) {
 
@@ -21,13 +20,11 @@ bool Sphere::Hit(const Ray& r, float tMin, float tMax, HitRecord& record, int de
 
 		for (int i = 0; i < 2; i++)
 		{
-			float temp = (-b - discriminantRoot) / a;
+			float temp = (-b - discriminantRoot);
 			if (temp < tMax && temp > tMin && temp < record.t)
 			{
 				record.t = temp;
-				record.point = origin + record.t * rayDir;
-				record.normal = (record.point - mCenter) * mInvRadius;
-				record.matPtr = mMatPtr;
+				record.prim = (Primitive*)this;
 				return true;
 			}
 			discriminantRoot = -discriminantRoot;

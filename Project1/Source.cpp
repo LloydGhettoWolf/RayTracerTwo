@@ -37,7 +37,7 @@ const int NUM_COLS_PER_PIXEL = 3;
 
 const int SPAN_LENGTH = WIDTH * NUM_COLS_PER_PIXEL;
 
-const int NUM_SAMPLES = 128;
+const int NUM_SAMPLES = 16;
 const int DEPTH = 25;
 
 const int NUM_SPHERES = 8;
@@ -83,35 +83,35 @@ Primitive* CreateScene()
 
 	////list[i++] = new Triangle( triVerts, new Metal(Vector3(0.5f, 0.5f, 0.5f), 0.05f));
 	list[i++] = new Sphere(Vector3(0.0f, -1000.0f, 0.0f), 1000.0f, new Lambertian(Vector3(0.5f, 0.5f, 0.5f)));
-	//
-	//for (int a = -NUM_SPHERES; a < NUM_SPHERES; a++)
-	//{
-	//	for (int b = -NUM_SPHERES; b < NUM_SPHERES; b++)
-	//	{
-	//		float chooseMat = RandFloat();
-	//		Vector3 center((float)a + (2.0f * RandFloat() -1.0f), 0.225f, b + (2.0f * RandFloat() - 1.0f));
-	//		if (chooseMat < 0.8f)
-	//		{
-	//			list[i++] = new Sphere(center, 0.25f, new Lambertian(Vector3(RandFloat(), RandFloat(), RandFloat())));
-	//		}
-	//		else if (chooseMat < 0.95f)
-	//		{
-	//			list[i++] = new  Sphere(center, 0.25f, new Metal(Vector3(RandFloat(), RandFloat(), RandFloat()), 0.3f * RandFloat()));
-	//		}
-	//		else
-	//		{
-	//			list[i++] = new Sphere(center, 0.25f, new Dialectric(1.5f));
-	//		}
-	//	}
-	//}
+	
+	for (int a = -NUM_SPHERES; a < NUM_SPHERES; a++)
+	{
+		for (int b = -NUM_SPHERES; b < NUM_SPHERES; b++)
+		{
+			float chooseMat = RandFloat();
+			Vector3 center((float)a + (2.0f * RandFloat() -1.0f), 0.225f, b + (2.0f * RandFloat() - 1.0f));
+			if (chooseMat < 0.8f)
+			{
+				list[i++] = new Sphere(center, 0.25f, new Lambertian(Vector3(RandFloat(), RandFloat(), RandFloat())));
+			}
+			else if (chooseMat < 0.95f)
+			{
+				list[i++] = new  Sphere(center, 0.25f, new Metal(Vector3(RandFloat(), RandFloat(), RandFloat()), 0.3f * RandFloat()));
+			}
+			else
+			{
+				list[i++] = new Sphere(center, 0.25f, new Dialectric(1.5f));
+			}
+		}
+	}
 
-	//list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), 1.0f, new Dialectric(1.5f));
-	//list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), -0.95f, new Dialectric(1.5f));
-	//list[i++] = new Sphere(Vector3(2.0f, 1.0f, 0.0f), 1.0f, new Metal(Vector3(0.7f, 0.6f, 0.5f), 0.0f));
+	list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), 1.0f, new Dialectric(1.5f));
+	list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), -0.95f, new Dialectric(1.5f));
+	list[i++] = new Sphere(Vector3(2.0f, 1.0f, 0.0f), 1.0f, new Metal(Vector3(0.7f, 0.6f, 0.5f), 0.0f));
 
 	//list[i++] = new Rectangle(3.0f, 5.0f, 1.0f, 3.0f,    -2.0f,    new DiffuseLight(Vector3(4.0f)), RECT_TYPE::XY);
 
-	list[i++] = new Box(Vector3(-0.5f, 0.0f, 1.0f), Vector3(0.5f, 1.0f, 0.0f), new Metal(Vector3(0.7f, 0.6f, 0.5f), 0.0f));
+	//list[i++] = new Box(Vector3(-0.5f, 0.0f, 1.0f), Vector3(0.5f, 1.0f, 0.0f), new Metal(Vector3(0.7f, 0.6f, 0.5f), 0.0f));
 	list[i++] = new Sphere(Vector3(0.0f, 4.0f, 0.0f), 1.0f, new DiffuseLight(Vector3(4.0f)));
 	return new BVHNode(list, i, 0.0f, 1.0f);
 }
@@ -131,6 +131,9 @@ Vector3 BGColor(const Ray& r, Primitive* list, int depth)
 
 	if (list->Hit(r, 0.01f, 9999.9f, rec, depth))
 	{
+		rec.matPtr = rec.prim->GetMaterial();
+		rec.point = r.GetOrigin() + rec.t * r.GetDir();
+		rec.normal = rec.prim->GetNormal(rec.point);
 		Ray scattered;
 		Vector3 attenuation;
 		Vector3 emittedLight = rec.matPtr->Emitted(1.0f, 1.0f, Vector3(1.0f));
