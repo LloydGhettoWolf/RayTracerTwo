@@ -109,3 +109,17 @@ public:
 private:
 	float mRefIndex;
 };
+
+class Isotropic : public Material
+{
+	public:
+		Isotropic(const Vector3& diff) : mDiffuse(diff) {};
+		virtual bool Scatter(const Ray& r, const HitRecord& rec, Vector3& attenuation, Ray& scattered) const
+		{
+			scattered = Ray(rec.point, RandinUnitSphere());
+			attenuation = mDiffuse;
+			return true;
+		}
+	private:
+		Vector3 mDiffuse;
+};

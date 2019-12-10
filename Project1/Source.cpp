@@ -23,6 +23,7 @@
 #include "Rectangle.h"
 #include "DiffuseLight.h"
 #include "Box.h"
+#include "ConstantMedium.h"
 
 using namespace std;
 
@@ -37,12 +38,12 @@ const int NUM_COLS_PER_PIXEL = 3;
 
 const int SPAN_LENGTH = WIDTH * NUM_COLS_PER_PIXEL;
 
-const int NUM_SAMPLES = 256;
+const int NUM_SAMPLES = 1024;
 const int DEPTH = 25;
 
-const int NUM_SPHERES = 5;
+const int NUM_SPHERES = 8;
 
-const static string fileName = "lowSample.tga";
+const static string fileName = "heavy.tga";
 
 // will we run on multicore?
 #define MULTICORE
@@ -149,14 +150,18 @@ Primitive* CreateScene()
 
 	//list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), 1.0f, new Dialectric(1.5f));
 	//list[i++] = new Sphere(Vector3(0.0f, 1.0f, 0.0f), -0.95f, new Dialectric(1.5f));
-	list[i++] = new Sphere(Vector3(2.0f, 1.0f, 0.0f), 1.0f, new Metal(Vector3(0.1f, 0.1f, 1.0f), 0.1f));
-
+	Primitive *prim =  new Sphere(Vector3(2.0f, 1.0f, 0.0f), 1.0f, new Dialectric(1.5f));
+	list[i++] = prim;
+	list[i++] = new ConstantMedium(prim, 2.0f, Vector3(0.2f, 0.4f, 0.9f));
 	//list[i++] = new Rectangle(-0.5f, 0.5f,   0.0f, 0.5f,   0.5f, new DiffuseLight(Vector3(4.0f, 0.0f, 0.0f)), RECT_TYPE::YZ, true);
 
 	list[i++] = new Box(Vector3(-0.5f, 0.0f, 0.0f), Vector3(0.5f, 1.0f, 1.0f), new DiffuseLight(Vector3(5.0f)));
 	list[i++] = new Sphere(Vector3(0.0f, 4.0f, 0.0f), 1.0f, new DiffuseLight(Vector3(4.0f, 0.0f, 0.0f)));
 	list[i++] = new Sphere(Vector3(8.0f, 4.0f, 0.0f), 1.0f, new DiffuseLight(Vector3(0.5f, 4.0f, 0.5f)));
 	list[i++] = new Sphere(Vector3(-8.0f, 4.0f, 0.0f), 1.0f, new DiffuseLight(Vector3(0.0f, 0.0f, 4.0f)));
+	//Primitive *prim = new Sphere(Vector3(0.0f, 0.5f, 0.0f), 20.0f, nullptr);
+	
+
 	return new BVHNode(list, i, 0.0f, 1.0f);
 }
 

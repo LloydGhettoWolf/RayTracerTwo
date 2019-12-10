@@ -131,6 +131,7 @@
     <ClCompile Include="Box.cpp" />
     <ClCompile Include="BVHNode.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="ConstantMedium.cpp" />
     <ClCompile Include="Globals.cpp" />
     <ClCompile Include="Materials.cpp" />
     <ClCompile Include="PrimitiveList.cpp" />
@@ -145,6 +146,7 @@
     <ClInclude Include="Box.h" />
     <ClInclude Include="BVHNode.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="ConstantMedium.h" />
     <ClInclude Include="DiffuseLight.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="Materials.h" />

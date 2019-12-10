@@ -4,6 +4,9 @@
     <ClCompile Include="AABB.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Box.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="BVHNode.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -14,6 +17,12 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Materials.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="PrimitiveList.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Rectangle.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source.cpp">
@@ -28,75 +37,67 @@
     <ClCompile Include="WorkerThreads.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Rectangle.cpp">
+    <ClCompile Include="ConstantMedium.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="PrimitiveList.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-<<<<<<< HEAD
-    <ClCompile Include="Box.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-=======
->>>>>>> a7d65b2d1f0244d417b88c2a87ffdca1b96eda36
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AABB.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="BVHNode.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Globals.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Materials.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Primitive.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="PrimitiveList.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Ray.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Sphere.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Triangle.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Vector3.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="WorkerThreads.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Vector3Simd.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="DiffuseLight.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Rectangle.h">
-      <Filter>Headers</Filter>
+      <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Box.h">
-      <Filter>Headers</Filter>
+      <Filter>Header</Filter>
     </ClInclude>
+    <ClInclude Include="BVHNode.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Globals.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Materials.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Primitive.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimitiveList.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Ray.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Rectangle.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="DiffuseLight.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Sphere.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Triangle.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector3.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector3Simd.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="WorkerThreads.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstantMedium.h" />
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="Headers">
-      <UniqueIdentifier>{58750657-cc9e-41ff-ba75-9a45de9c4c8e}</UniqueIdentifier>
+    <Filter Include="Header">
+      <UniqueIdentifier>{fb381f2f-d833-4a1f-9b0c-2be141c89c6e}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source">
-      <UniqueIdentifier>{b3dd3d83-98c1-4c37-a006-d279bcf53cf1}</UniqueIdentifier>
+      <UniqueIdentifier>{0a3678a6-dc16-4a03-90dd-fe3d2e0a4be4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
